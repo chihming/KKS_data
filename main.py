@@ -1,4 +1,5 @@
 from data_preprocessor import DataPreprocessor
+from file_writer import FileWriter
 import os
 
 base = os.getcwd()
@@ -8,15 +9,24 @@ metadata_dir_path = os.path.join(base, "metadata_1656673401")
 
 data_preprocessor = DataPreprocessor(interaction_data_1_path, interaction_data_2_path, metadata_dir_path)
 
+# filter interaction data
 item_type = 'VOD'
 select_interaction_type = ['click', 'play']
 interaction_thre = 10
 training_df, testing_df = data_preprocessor.filter_interaction_data(item_type, select_interaction_type, interaction_thre)
-print(len(training_df), len(testing_df))
 
+# filter metadata
 select_branch_type=['movie', 'series', 'season', 'episode']
 select_relation_type=['artists', 'genres']
 kg_data = data_preprocessor.filter_metadata(select_branch_type, select_relation_type)
-with open('kg.txt', 'w') as f:
-    for triple in kg_data:
-        f.write('\t'.join(triple)+'\n')
+
+# write files
+file_writer = FileWriter(training_df, testing_df, kg_data)
+file_writer.write_interaction(format_="triple", remap=True)
+file_writer.write_interaction(format_="tuple", remap=True)
+file_writer.write_interaction(format_="userwise", remap=True)
+file_writer.write_interaction(format_="triple", remap=False)
+file_writer.write_interaction(format_="tuple", remap=False)
+file_writer.write_interaction(format_="userwise", remap=False)
+file_writer.write_kgdata(remap=True)
+file_writer.write_kgdata(remap=False)

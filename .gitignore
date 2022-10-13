@@ -2,4 +2,4 @@ __pycache__/
 interaction_data/
 metadata_1656673401/
 *.ipynb
-*.txt
+output_data/
