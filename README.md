@@ -2,8 +2,37 @@
 
 ## Data Preprocessing
 DataPreprocessor will filter the interaction data by its **item type**, **interaction type**, **active user threshold**, and will split the data into training and testing data by **client_upload_timestamp**. Besides, it will filter the metadata by its **branch type**, **relation type**.
+```
+usage: main.py [-h] [-interaction_paths INTERACTION_PATHS [INTERACTION_PATHS ...]] [-meta_dir_path META_DIR_PATH] [-item_type ITEM_TYPE]
+               [-select_interaction_type SELECT_INTERACTION_TYPE [SELECT_INTERACTION_TYPE ...]] [-interaction_thre INTERACTION_THRE] [-select_branch_type SELECT_BRANCH_TYPE [SELECT_BRANCH_TYPE ...]]
+               [-select_relation_type SELECT_RELATION_TYPE [SELECT_RELATION_TYPE ...]]
 
-To check the detail, please see the file *data_preprocessor.py*.
+Parameters for the script.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -interaction_paths INTERACTION_PATHS [INTERACTION_PATHS ...]
+                        interaction log csv(s)
+  -meta_dir_path META_DIR_PATH
+                        directory to meta
+  -item_type ITEM_TYPE  target item type
+  -select_interaction_type SELECT_INTERACTION_TYPE [SELECT_INTERACTION_TYPE ...]
+                        types to be selected for train/test
+  -interaction_thre INTERACTION_THRE
+                        threshold for selecting users
+  -select_branch_type SELECT_BRANCH_TYPE [SELECT_BRANCH_TYPE ...]
+                        types to be selected for train/test
+  -select_relation_type SELECT_RELATION_TYPE [SELECT_RELATION_TYPE ...]
+                        types to be selected for train/test
+```
+Example Command:
+```
+python3 main.py \
+-interaction_paths data/16b9973c-3556-40be-81af-89efa792a880.csv data/36d1641e-1ee9-466a-8e10-b1b0ca2b4f98.csv
+-meta_dir_path data/metadata_1656673401
+```
+
+
 
 ## File Writing
 FileWriter will write the output file based on the given training_df, testing_df, kg_data.  
