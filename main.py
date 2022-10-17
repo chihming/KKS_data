@@ -1,32 +1,95 @@
+import argparse
+from pathlib import Path
 from data_preprocessor import DataPreprocessor
 from file_writer import FileWriter
-import os
 
-base = os.getcwd()
-interaction_data_1_path = os.path.join(base, "interaction_data/16b9973c-3556-40be-81af-89efa792a880.csv")
-interaction_data_2_path = os.path.join(base, "interaction_data/36d1641e-1ee9-466a-8e10-b1b0ca2b4f98.csv")
-metadata_dir_path = os.path.join(base, "metadata_1656673401")
+parser = argparse.ArgumentParser(
+    description="Parameters for the script."
+)
+parser.add_argument(
+    '-interaction_paths',
+    nargs='+',
+    required=True,
+    help='interaction log csv(s)'
+)
+parser.add_argument(
+    '-split_time',
+    default="2022-07-02 15:00",
+    help='interaction log csv(s)'
+)
+parser.add_argument(
+    '-meta_dir_path',
+    required=True,
+    help='directory to meta'
+)
+parser.add_argument(
+    '-item_type',
+    default='VOD',
+    help='target item type'
+)
+parser.add_argument(
+    '-select_interaction_type',
+    default=['click', 'play'],
+    nargs='+',
+    help='types to be selected for train/test'
+)
+parser.add_argument(
+    '-interaction_thre',
+    default=10,
+    type=int,
+    help='threshold for selecting users'
+)
+parser.add_argument(
+    '-select_branch_type',
+    default=['movie', 'series', 'season', 'episode'],
+    nargs='+',
+    help='types to be selected for train/test'
+)
+parser.add_argument(
+    '-select_relation_type',
+    default=['artists', 'genres'],
+    nargs='+',
+    help='types to be selected for train/test'
+)
+args = parser.parse_args()
 
-data_preprocessor = DataPreprocessor(interaction_data_1_path, interaction_data_2_path, metadata_dir_path)
+data_preprocessor = DataPreprocessor(
+    interaction_paths = [Path(p) for p in args.interaction_paths],
+    meta_dir_path = Path(args.meta_dir_path),
+)
 
 # filter interaction data
-item_type = 'VOD'
-select_interaction_type = ['click', 'play']
-interaction_thre = 10
-training_df, testing_df = data_preprocessor.filter_interaction_data(item_type, select_interaction_type, interaction_thre)
+training_df, testing_df = data_preprocessor.filter_interaction_data(
+    item_type = args.item_type,
+    select_interaction_type = args.select_interaction_type,
+    interaction_thre = args.interaction_thre,
+    split_time = args.split_time,
+)
 
 # filter metadata
-select_branch_type=['movie', 'series', 'season', 'episode']
-select_relation_type=['artists', 'genres']
-kg_data = data_preprocessor.filter_metadata(select_branch_type, select_relation_type)
+kg_data = data_preprocessor.filter_metadata(
+    select_branch_type = args.select_branch_type,
+    select_relation_type = args.select_relation_type
+)
 
 # write files
-file_writer = FileWriter(training_df, testing_df, kg_data)
-file_writer.write_interaction(format_="triple", remap=True)
-file_writer.write_interaction(format_="tuple", remap=True)
-file_writer.write_interaction(format_="userwise", remap=True)
-file_writer.write_interaction(format_="triple", remap=False)
-file_writer.write_interaction(format_="tuple", remap=False)
-file_writer.write_interaction(format_="userwise", remap=False)
-file_writer.write_kgdata(remap=True)
-file_writer.write_kgdata(remap=False)
+file_writer = FileWriter()
+file_writer.write_triple(
+    training_df = training_df,
+    testing_df = testing_df,
+    output_dir_path = Path('exp/triple')
+)
+file_writer.write_tuple(
+    training_df = training_df,
+    testing_df = testing_df,
+    output_dir_path = Path('exp/tuple')
+)
+file_writer.write_userwise(
+    training_df = training_df,
+    testing_df = testing_df,
+    output_dir_path = Path('exp/userwise')
+)
+file_writer.write_kgdata(
+    kg_data = kg_data,
+    output_dir_path = Path('exp/kgdata')
+)
